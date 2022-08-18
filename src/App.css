@@ -1,0 +1,7 @@
+.floor {
+  position: relative;
+}
+.floor .room {
+  position: absolute;
+  background: rgba(255, 255, 0, 0.7);
+}
