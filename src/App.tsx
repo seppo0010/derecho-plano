@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
@@ -42,7 +42,7 @@ function App() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT)
     Object.entries(floors)
       .filter(([name, _]) => selectedFloor === null || selectedFloor === name)
-      .map(([name, rooms]) => {
+      .forEach(([name, rooms]) => {
         const image = new Image();
         image.crossOrigin = 'Anonymous';
         image.src = `${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`;
