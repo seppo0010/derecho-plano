@@ -24,6 +24,7 @@ export const floors: Record<string, Room[]> = {
     {name:"20", left: 284, top: 709, width: 105, height: 69},
     {name:"21", left: 285, top: 633, width: 105, height: 70},
     {name:"22", left: 286, top: 577, width: 102, height: 51},
+    {name:"23", left: 286, top: 444+75, width: 102, height: 51},
     {name:"24", left: 285, top: 444, width: 104, height: 75},
     {name:"25", left: 581, top: 364, width: 69, height: 102},
     {name:"26", left: 657, top: 364, width: 69, height: 102},
