@@ -46,8 +46,18 @@ export const floors: Record<string, Room[]> = {
     {name:"57", left: 744, top: 887, width: 84, height: 107},
     {name:"58", left: 805, top: 1517, width: 57, height: 118},
     {name:"59", left: 736, top: 1534, width: 64, height: 107},
+    {name:"Salón Extensión Universitaria", left: 2047, top: 1473, width: 145, height: 182},
   ],
-  "planta principal": [],
+  "planta principal": [
+    {name:"Salón de Actos", left: 870, top: 876, width: 543, height: 378},
+    {name:"Aula Magna", left: 944, top: 489, width: 396, height: 273},
+    {name:"Salón Azul", left: 471, top: 266, width: 318, height: 145},
+    {name:"Salón Verde", left: 1994, top: 369, width: 145, height: 185},
+    {name:"Hall de los Pasos Perdidos", left: 518, top: 1413, width: 1239, height: 212},
+    {name:"Salón Rojo", left: 141, top: 1103, width: 149, height: 230},
+    {name:"Bedelía", left: 142, top: 373, width: 149, height: 182},
+    {name:"Auditorio", left: 1538, top: 703, width: 192, height: 551},
+  ],
   "primer piso": [
     {name:"119", left: 518, top: 354, width: 73, height: 103},
     {name:"120", left: 597, top: 354, width: 73, height: 103},
@@ -76,6 +86,7 @@ export const floors: Record<string, Room[]> = {
     {name:"146", left: 1739, top: 1069, width: 72, height: 113},
     {name:"147", left: 1616, top: 1219, width: 72, height: 113},
     {name:"148", left: 1739, top: 1232, width: 72, height: 113},
+    {name:"Sala Vélez Sarsfield", left: 421, top: 1583, width: 80, height: 168},
   ],
   "segundo piso": [
     {name:"203", left: 216, top: 1424, width: 111, height: 74},
