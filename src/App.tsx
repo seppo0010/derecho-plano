@@ -3,33 +3,25 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { Button, SelectChangeEvent, Snackbar } from "@mui/material";
+import { SelectChangeEvent } from "@mui/material";
 import './App.css';
 import { floors } from './Data';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import arrow from './arrow';
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const allRooms = useState(() => Object.values(floors).flatMap((rooms) => rooms.map(({ name }) => name)))[0];
+  const [roomImage, setRoomImage] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [selectedFloor, setSelectedFloor] = useState<string | null>(null);
-  useEffect(() => {
-    if (selectedRoom === null) {
-      setSelectedFloor(null);
-      return;
-    }
-    setSelectedFloor(
-      Object.entries(floors)
-        .find(([_, rooms]) => rooms.some(({ name }) => name === selectedRoom))![0]
-    );
-  }, [selectedRoom]);
   const handleChange = (ev: SelectChangeEvent) => {
     setSelectedRoom(ev.target.value === '' ? null : ev.target.value);
   }
-  const [NOT_COPIED, COPIED_ERROR, COPIED_OK] = [0, 1, 2]
-  const [copied, setCopied] = useState(NOT_COPIED)
-  const copyToClipboard = (() => {
+  useEffect(() => {
+    setRoomImage(null);
+    if (selectedRoom === null) {
+      return;
+    }
+    const s = selectedRoom;
     const WIDTH = 2993
     const HEIGHT = 2117
     if (!canvasRef) return;
@@ -41,7 +33,9 @@ function App() {
     if (!ctx) return;
     ctx.clearRect(0, 0, WIDTH, HEIGHT)
     Object.entries(floors)
-      .filter(([name, _]) => selectedFloor === null || selectedFloor === name)
+      .filter(([_, rooms]) =>
+        rooms.some(({ name }) => name === selectedRoom)
+      )
       .forEach(([name, rooms]) => {
         const image = new Image();
         image.crossOrigin = 'Anonymous';
@@ -63,30 +57,13 @@ function App() {
           })
 
           ctx.stroke();
-          canvas.toBlob(blob => {
-            if (!blob) {
-              console.error('did not get a blob', { blob });
-              setCopied(COPIED_ERROR)
-              return;
-            }
-            navigator.clipboard.write([
-              new ClipboardItem({
-                [blob.type]: blob
-              })
-            ]).then(() => {
-              setCopied(COPIED_OK)
-            }).catch((error) => {
-              console.error(error);
-              setCopied(COPIED_ERROR)
-            }).finally(() => {
-              canvas.height = 0;
-              canvas.width = 0;
-            })
-          })
+          if (s === selectedRoom) {
+            setRoomImage(canvas.toDataURL())
+          }
         }
       })
+  }, [selectedRoom])
 
-  })
   return (
     <div>
       <FormControl fullWidth>
@@ -101,39 +78,11 @@ function App() {
           {allRooms.map((room) => (<MenuItem value={room} key={room}>{room}</MenuItem>))}
         </Select>
       </FormControl>
-      {selectedFloor !== null && <Button onClick={() => copyToClipboard()}><ContentCopyIcon /></Button>}
-      {Object.entries(floors)
-        .filter(([name, _]) => selectedFloor === null || selectedFloor === name)
+      {selectedRoom === null ? Object.entries(floors)
         .map(([name, rooms]) => (
-          <svg xmlns="http://www.w3.org/2000/svg"
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            viewBox="0 0 2993 2117"
-            key={name}>
-            <image
-              width="2993" height="2117"
-              xlinkHref={`${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`}
-            />
-            {rooms.map(({ name, top, left, width, height }) => (<rect key={name}
-              y={top}
-              x={left}
-              width={width}
-              height={height}
-              style={name === selectedRoom ? {
-                fill: 'yellow',
-                fillOpacity: '0.5',
-              } : {
-                fill: 'transparent',
-              }}
-            />
-            ))}
-          </svg>))}
-      <Snackbar
-        open={copied !== NOT_COPIED}
-        autoHideDuration={6000}
-        onClose={() => setCopied(NOT_COPIED)}
-        message={copied === COPIED_OK ? "Copiado" : (copied === COPIED_ERROR ? "Error al copiar" : "?")}
-      />
-      <canvas ref={canvasRef} style={{ visibility: 'hidden' }}></canvas>
+          <img key={name} src={`${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`} alt="" />
+        )) : (roomImage ? <img src={roomImage} alt="" /> : '')}
+      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
   );
 }
