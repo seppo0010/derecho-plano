@@ -8,7 +8,7 @@ export interface Room {
 
 export const floors: Record<string, Room[]> = {
   "planta baja": [
-    {name:"7", left: 506, top: 1319, width: 61, height: 73},
+    {name:"7", left: 284, top: 862, width: 105, height: 73},
     {name:"8", left: 285, top: 1396, width: 105, height: 69},
     {name:"9", left: 285, top: 1321, width: 105, height: 69},
     {name:"10", left: 285, top: 1245, width: 105, height: 69},
@@ -60,6 +60,7 @@ export const floors: Record<string, Room[]> = {
     {name:"Auditorio", left: 1538, top: 703, width: 192, height: 551},
   ],
   "primer piso": [
+    {name:"Sala de Audencias", left: 2080, top: 425, width: 155, height: 130},
     {name:"119", left: 518, top: 354, width: 73, height: 103},
     {name:"120", left: 597, top: 354, width: 73, height: 103},
     {name:"121", left: 680, top: 354, width: 73, height: 103},
