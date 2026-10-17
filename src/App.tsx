@@ -19,6 +19,18 @@ interface RoomOption {
   floor: string;
 }
 
+const allRooms: RoomOption[] = Object.entries(floors).flatMap(([floor, rooms]) => rooms.map(({ name }) => ({ name, floor })))
+
+const roomFromHash = () => {
+  let name: string
+  try {
+    name = decodeURIComponent(window.location.hash.slice(1))
+  } catch {
+    return null
+  }
+  return allRooms.find((room) => room.name === name) ?? null
+}
+
 const floorImage = (floor: string) => `${import.meta.env.BASE_URL}images/${encodeURIComponent(floor)}.png`
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -41,9 +53,25 @@ function FloorCard({ title, subtitle, action, children }: { title: string, subti
 
 function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const allRooms = useState<RoomOption[]>(() => Object.entries(floors).flatMap(([floor, rooms]) => rooms.map(({ name }) => ({ name, floor }))))[0];
   const [roomImage, setRoomImage] = useState<string | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(null);
+  const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(roomFromHash);
+  const selectRoom = (room: RoomOption | null) => {
+    setSelectedRoom(room);
+    if (room) {
+      window.location.hash = encodeURIComponent(room.name);
+    } else {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+  useEffect(() => {
+    const onHashChange = () => setSelectedRoom(roomFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    window.addEventListener('popstate', onHashChange);
+    return () => {
+      window.removeEventListener('hashchange', onHashChange);
+      window.removeEventListener('popstate', onHashChange);
+    };
+  }, [])
   useEffect(() => {
     setRoomImage(null);
     if (selectedRoom === null) {
@@ -101,7 +129,7 @@ function App() {
             getOptionLabel={(room) => room.name}
             isOptionEqualToValue={(a, b) => a.name === b.name}
             value={selectedRoom}
-            onChange={(_, room) => setSelectedRoom(room)}
+            onChange={(_, room) => selectRoom(room)}
             autoHighlight
             renderInput={(params) => <TextField {...params} label="Aula" placeholder="Buscar aula…" />}
           />
