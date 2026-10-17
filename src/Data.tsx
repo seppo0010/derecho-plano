@@ -4,6 +4,7 @@ export interface Room {
   top: number;
   width: number;
   height: number;
+  toilet?: { gender?: 'mujeres' | 'hombres' };
 }
 
 export const floors: Record<string, Room[]> = {
@@ -34,8 +35,8 @@ export const floors: Record<string, Room[]> = {
     {name:"30", left: 962, top: 364, width: 69, height: 102},
     {name:"31", left: 1039, top: 364, width: 69, height: 102},
     {name:"42", left: 1724, top: 1518, width: 98, height: 116},
-    {name:"43", left: 1654, top: 1535, width: 64, height: 105},
-    {name:"44", left: 1592, top: 1517, width: 57, height: 118},
+    {name:"Baño de mujeres junto al 42", left: 1654, top: 1535, width: 64, height: 105, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 42", left: 1592, top: 1517, width: 57, height: 118, toilet: {gender: 'hombres'}},
     {name:"45", left: 1626, top: 1206, width: 139, height: 108},
     {name:"46", left: 1626, top: 1090, width: 139, height: 108},
     {name:"47", left: 1626, top: 976, width: 139, height: 108},
@@ -48,6 +49,9 @@ export const floors: Record<string, Room[]> = {
     {name:"58", left: 805, top: 1517, width: 57, height: 118},
     {name:"59", left: 736, top: 1534, width: 64, height: 107},
     {name:"Salón Extensión Universitaria", left: 2047, top: 1473, width: 145, height: 182},
+    {name:"Baño de mujeres junto al 25", left: 593, top: 563, width: 83, height: 63, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 49b", left: 1663, top: 558, width: 82, height: 67, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al 49b", left: 1748, top: 558, width: 114, height: 67, toilet: {gender: 'mujeres'}},
   ],
   "planta principal": [
     {name:"Salón de Actos", left: 870, top: 876, width: 543, height: 378},
@@ -58,6 +62,15 @@ export const floors: Record<string, Room[]> = {
     {name:"Salón Rojo", left: 141, top: 1103, width: 149, height: 230},
     {name:"Bedelía", left: 142, top: 373, width: 149, height: 182},
     {name:"Auditorio", left: 1538, top: 703, width: 192, height: 551},
+    {name:"Baño de hombres junto al Salón Azul", left: 485, top: 488, width: 142, height: 70, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al Salón Azul", left: 627, top: 488, width: 79, height: 70, toilet: {gender: 'mujeres'}},
+    {name:"Baño de mujeres junto al Salón Verde", left: 1594, top: 485, width: 121, height: 73, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al Salón Verde", left: 1715, top: 485, width: 83, height: 73, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al Salón Rojo", left: 375, top: 1261, width: 107, height: 81, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al Salón Rojo", left: 482, top: 1261, width: 64, height: 81, toilet: {gender: 'hombres'}},
+    {name:"Baño de hombres junto al Salón de Actos", left: 707, top: 1261, width: 83, height: 43, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al Salón de Actos", left: 1493, top: 1260, width: 82, height: 44, toilet: {gender: 'mujeres'}},
+    {name:"Baño de mujeres junto al Auditorio", left: 1737, top: 1261, width: 59, height: 79, toilet: {gender: 'mujeres'}},
   ],
   "primer piso": [
     {name:"Sala de Audencias", left: 2080, top: 425, width: 155, height: 130},
@@ -89,6 +102,9 @@ export const floors: Record<string, Room[]> = {
     {name:"147", left: 1616, top: 1219, width: 72, height: 113},
     {name:"148", left: 1739, top: 1232, width: 72, height: 113},
     {name:"Sala Vélez Sarsfield", left: 421, top: 1583, width: 80, height: 168},
+    {name:"Baño de mujeres junto al 119", left: 529, top: 555, width: 147, height: 73, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 137", left: 1738, top: 555, width: 145, height: 73, toilet: {gender: 'hombres'}},
+    {name:"Baño de hombres junto a la Sala Vélez Sarsfield", left: 468, top: 1369, width: 124, height: 85, toilet: {gender: 'hombres'}},
   ],
   "segundo piso": [
     {name:"203", left: 216, top: 1424, width: 111, height: 74},
@@ -124,6 +140,10 @@ export const floors: Record<string, Room[]> = {
     {name:"250", left: 1909, top: 1508, width: 79, height: 69},
     {name:"251", left: 1909, top: 1580, width: 79, height: 69},
     {name:"252", left: 1909, top: 1654, width: 79, height: 69},
+    {name:"Baño de hombres junto al 217", left: 430, top: 545, width: 93, height: 66, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al 217", left: 542, top: 540, width: 146, height: 71, toilet: {gender: 'mujeres'}},
+    {name:"Baño de mujeres junto al 228", left: 1735, top: 538, width: 146, height: 74, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 204", left: 482, top: 1344, width: 122, height: 85, toilet: {gender: 'hombres'}},
   ],
   "tercer piso": [
     {name:"315", left: 1589, top: 743, width: 69, height: 116},
@@ -170,5 +190,11 @@ export const floors: Record<string, Room[]> = {
     {name:"384", left: 1162, top: 1534, width: 79, height: 178},
     {name:"385", left: 756, top: 1534, width: 76, height: 178},
     {name:"386", left: 675, top: 1534, width: 76, height: 178},
+    {name:"Baño de mujeres junto al 354", left: 505, top: 1368, width: 80, height: 74, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 354", left: 587, top: 1368, width: 78, height: 74, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al 351", left: 567, top: 1529, width: 35, height: 42, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 351", left: 567, top: 1603, width: 35, height: 43, toilet: {gender: 'hombres'}},
+    {name:"Baño de mujeres junto al 372", left: 1890, top: 1442, width: 82, height: 45, toilet: {gender: 'mujeres'}},
+    {name:"Baño de hombres junto al 372", left: 1890, top: 1490, width: 82, height: 30, toilet: {gender: 'hombres'}},
   ],
 }

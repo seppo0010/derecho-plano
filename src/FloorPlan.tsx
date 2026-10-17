@@ -5,6 +5,8 @@ import { plans } from './Plans';
 export const COLORS = {
   background: '#fbfaf7',
   room: '#e3ebf5',
+  toilet: '#dcefe6',
+  toiletIcon: '#3f7a5f',
   roomHover: '#c9d8ea',
   label: '#34506e',
   wall: '#2b2f36',
@@ -71,6 +73,32 @@ function RoomLabel({ room, color }: { room: Room, color: string }) {
     >
       {lines.map((line, i) => <tspan key={i} x={x} dy={i === 0 ? 0 : fontSize * LINE_HEIGHT}>{line}</tspan>)}
     </text>
+  )
+}
+
+// Pictogram of a person, in a box 1 wide and 2 tall.
+const PERSON = {
+  mujeres: 'M0.3 0.6h0.4l0.3 0.9h-0.3v0.5h-0.13v-0.5h-0.14v0.5h-0.13v-0.5h-0.3z',
+  hombres: 'M0.12 0.6h0.76v0.75h-0.18v0.65h-0.15v-0.65h-0.1v0.65h-0.15v-0.65h-0.18z',
+}
+
+function ToiletIcon({ room, color }: { room: Room, color: string }) {
+  const { left, top, width, height } = room
+  const genders = room.toilet?.gender ? [room.toilet.gender] : ['mujeres', 'hombres'] as const
+  // each figure is 1 unit wide with 0.4 units of space between them
+  const units = genders.length * 1.4 - 0.4
+  const scale = Math.min((width * 0.8) / units, (height * 0.8) / 2, 24)
+  const x = left + (width - units * scale) / 2
+  const y = top + (height - 2 * scale) / 2
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`} fill={color} pointerEvents="none">
+      {genders.map((gender, i) => (
+        <g key={gender} transform={`translate(${i * 1.4} 0)`}>
+          <circle cx={0.5} cy={0.3} r={0.25} />
+          <path d={PERSON[gender]} />
+        </g>
+      ))}
+    </g>
   )
 }
 
@@ -155,7 +183,7 @@ export default function FloorPlan({ floor, selected, onSelect, ref }: FloorPlanP
               width={room.width}
               height={room.height}
               rx={4}
-              fill={isSelected ? COLORS.selected : COLORS.room}
+              fill={isSelected ? COLORS.selected : room.toilet ? COLORS.toilet : COLORS.room}
             />
           </g>
         )
@@ -164,9 +192,10 @@ export default function FloorPlan({ floor, selected, onSelect, ref }: FloorPlanP
       <path d={plan.walls} fill={COLORS.wall} />
       {plan.stairs.map(([sx, sy]) => <Stairs key={`${sx},${sy}`} x={sx} y={sy} />)}
       {plan.elevators.map(([ex, ey]) => <Elevator key={`${ex},${ey}`} x={ex} y={ey} />)}
-      {rooms.map((room) => (
-        <RoomLabel key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.label} />
-      ))}
+      {rooms.map((room) => room.toilet
+        ? <ToiletIcon key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.toiletIcon} />
+        : <RoomLabel key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.label} />
+      )}
     </svg>
   )
 }
