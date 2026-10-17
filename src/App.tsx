@@ -45,6 +45,15 @@ const renderPng = (svgElement: SVGSVGElement): Promise<string> => new Promise((r
 })
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
+// The room under a mouse event on the plan's image, which shows the floor's whole viewBox.
+const roomAt = (floor: string, event: React.MouseEvent<HTMLImageElement>) => {
+  const [x, y, width, height] = planViewBox(floor)
+  const bounds = event.currentTarget.getBoundingClientRect()
+  const px = x + ((event.clientX - bounds.left) / bounds.width) * width
+  const py = y + ((event.clientY - bounds.top) / bounds.height) * height
+  return floors[floor].find((room) => px >= room.left && px <= room.left + room.width && py >= room.top && py <= room.top + room.height)
+}
+
 function FloorCard({ aspectRatio, title, subtitle, action, children }: { aspectRatio: string, title: string, subtitle?: string, action?: React.ReactNode, children: React.ReactNode }) {
   return (
     <Paper variant="outlined" sx={{ overflow: 'hidden', borderRadius: 3 }}>
@@ -69,6 +78,7 @@ function App() {
   const imageKey = selectedRoom && selectedRoom.name;
   const [rendered, setRendered] = useState<{ key: string, png: string } | null>(null);
   const roomImage = rendered && rendered.key === imageKey ? rendered.png : null;
+  const [hoveringRoom, setHoveringRoom] = useState(false);
   const selectRoom = (room: RoomOption | null) => {
     setSelectedRoom(room);
     if (room) {
@@ -135,7 +145,18 @@ function App() {
                 action={roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
               >
                 {roomImage
-                  ? <Box component="img" src={roomImage} alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`} sx={{ display: 'block', width: '100%' }} />
+                  ? <Box
+                      component="img"
+                      src={roomImage}
+                      alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`}
+                      onClick={(event: React.MouseEvent<HTMLImageElement>) => {
+                        const room = roomAt(selectedRoom.floor, event)
+                        if (room) selectRoom({ name: room.name, floor: selectedRoom.floor })
+                      }}
+                      onMouseMove={(event: React.MouseEvent<HTMLImageElement>) => setHoveringRoom(roomAt(selectedRoom.floor, event) !== undefined)}
+                      onMouseLeave={() => setHoveringRoom(false)}
+                      sx={{ display: 'block', width: '100%', cursor: hoveringRoom ? 'pointer' : 'auto' }}
+                    />
                   : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} />}
               </FloorCard>
             </Box>
