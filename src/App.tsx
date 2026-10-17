@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { floors } from './Data';
-import FloorPlan, { COLORS, planAspect } from './FloorPlan';
+import FloorPlan, { COLORS, aspect, planViewBox } from './FloorPlan';
 
 interface RoomOption {
   name: string;
@@ -45,7 +45,7 @@ const renderPng = (svgElement: SVGSVGElement): Promise<string> => new Promise((r
 })
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
-function FloorCard({ floor, title, subtitle, action, children }: { floor: string, title: string, subtitle?: string, action?: React.ReactNode, children: React.ReactNode }) {
+function FloorCard({ aspectRatio, title, subtitle, action, children }: { aspectRatio: string, title: string, subtitle?: string, action?: React.ReactNode, children: React.ReactNode }) {
   return (
     <Paper variant="outlined" sx={{ overflow: 'hidden', borderRadius: 3 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2.5, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
@@ -55,7 +55,7 @@ function FloorCard({ floor, title, subtitle, action, children }: { floor: string
         </Box>
         {action}
       </Stack>
-      <Box sx={{ bgcolor: COLORS.background, aspectRatio: planAspect(floor), '& svg': { display: 'block', width: '100%', height: 'auto' }, '& .room:hover rect': { fill: COLORS.roomHover } }}>
+      <Box sx={{ bgcolor: COLORS.background, aspectRatio, '& svg': { display: 'block', width: '100%', height: 'auto' }, '& .room:hover rect': { fill: COLORS.roomHover } }}>
         {children}
       </Box>
     </Paper>
@@ -64,8 +64,12 @@ function FloorCard({ floor, title, subtitle, action, children }: { floor: string
 
 function App() {
   const planRef = useRef<SVGSVGElement | null>(null);
-  const [roomImage, setRoomImage] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(roomFromHash);
+  const [zoomed, setZoomed] = useState(true);
+  // what the plan is rendered for; the image is only shown once it matches
+  const imageKey = selectedRoom && JSON.stringify([selectedRoom.name, zoomed]);
+  const [rendered, setRendered] = useState<{ key: string, png: string } | null>(null);
+  const roomImage = rendered && rendered.key === imageKey ? rendered.png : null;
   const selectRoom = (room: RoomOption | null) => {
     setSelectedRoom(room);
     if (room) {
@@ -84,20 +88,19 @@ function App() {
     };
   }, [])
   useEffect(() => {
-    setRoomImage(null);
-    if (selectedRoom === null) {
-      return;
-    }
+    if (imageKey === null) return;
     const svg = planRef.current;
     if (!svg) return;
     let cancelled = false;
     renderPng(svg).then((png) => {
-      if (!cancelled) setRoomImage(png);
+      if (!cancelled) setRendered({ key: imageKey, png });
     });
     return () => {
       cancelled = true;
     };
-  }, [selectedRoom])
+  }, [imageKey])
+  const selectedViewBox = selectedRoom && planViewBox(selectedRoom.floor, zoomed ? selectedRoom.name : undefined);
+  const canZoom = selectedRoom !== null && planViewBox(selectedRoom.floor, selectedRoom.name) !== planViewBox(selectedRoom.floor);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 6 }}>
@@ -122,19 +125,24 @@ function App() {
         </Paper>
         <Stack spacing={3}>
           {selectedRoom === null ? Object.keys(floors).map((floor) => (
-            <FloorCard key={floor} floor={floor} title={capitalize(floor)}>
+            <FloorCard key={floor} aspectRatio={aspect(planViewBox(floor))} title={capitalize(floor)}>
               <FloorPlan floor={floor} onSelect={(name) => selectRoom({ name, floor })} />
             </FloorCard>
           )) : (
             <FloorCard
-              floor={selectedRoom.floor}
+              aspectRatio={aspect(selectedViewBox!)}
               title={/^\d/.test(selectedRoom.name) ? `Aula ${selectedRoom.name}` : selectedRoom.name}
               subtitle={capitalize(selectedRoom.floor)}
-              action={roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
+              action={
+                <Stack direction="row" spacing={1}>
+                  {canZoom && <Button variant="outlined" onClick={() => setZoomed(!zoomed)}>{zoomed ? 'Ver piso completo' : 'Acercar'}</Button>}
+                  {roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
+                </Stack>
+              }
             >
               {roomImage
                 ? <Box component="img" src={roomImage} alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`} sx={{ display: 'block', width: '100%' }} />
-                : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} />}
+                : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} zoom={zoomed} />}
             </FloorCard>
           )}
         </Stack>
