@@ -39,7 +39,7 @@ function App() {
       .forEach(([name, rooms]) => {
         const image = new Image();
         image.crossOrigin = 'Anonymous';
-        image.src = `${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`;
+        image.src = `${import.meta.env.BASE_URL}images/${encodeURIComponent(name)}.png`;
         image.onload = () => {
           if (cancelled) return;
           ctx.fillStyle = "white";
@@ -82,7 +82,7 @@ function App() {
       </FormControl>
       {selectedRoom === null ? Object.entries(floors)
         .map(([name, rooms]) => (
-          <img key={name} src={`${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`} alt="" />
+          <img key={name} src={`${import.meta.env.BASE_URL}images/${encodeURIComponent(name)}.png`} alt="" />
         )) : (roomImage ? <img src={roomImage} alt="" /> : '')}
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
     </div>
