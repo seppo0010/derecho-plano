@@ -36,28 +36,7 @@ const fullViewBoxes: Record<string, ViewBox> = Object.fromEntries(
   Object.entries(plans).map(([floor, { viewBox: [x, y, width, height] }]) => [floor, [x - SIDE_BAND, y, width + SIDE_BAND, height + STREET_BAND]])
 )
 
-const ZOOM_ASPECT = 4 / 3
-const ZOOM_MIN_WIDTH = 800
-
-// A 4:3 window around the room with some surroundings for context, or null
-// when the room is so big that zooming wouldn't show much less than the floor.
-const zoomBox = (floor: string, room: Room): ViewBox | null => {
-  const [px, py, pw, ph] = fullViewBoxes[floor]
-  const width = Math.min(Math.max(ZOOM_MIN_WIDTH, room.width * 3, room.height * 3 * ZOOM_ASPECT), pw, ph * ZOOM_ASPECT)
-  if (width > pw * 0.75) return null
-  const height = width / ZOOM_ASPECT
-  const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi)
-  const x = clamp(room.left + room.width / 2 - width / 2, px, px + pw - width)
-  let y = clamp(room.top + room.height / 2 - height / 2, py, py + ph - height)
-  // show all of the street or none of it
-  if (y + height > py + ph - STREET_BAND) y = py + ph - height
-  return [Math.round(x), Math.round(y), Math.round(width), Math.round(height)]
-}
-
-export const planViewBox = (floor: string, zoomTo?: string): ViewBox => {
-  const room = zoomTo === undefined ? undefined : floors[floor].find(({ name }) => name === zoomTo)
-  return (room && zoomBox(floor, room)) ?? fullViewBoxes[floor]
-}
+export const planViewBox = (floor: string): ViewBox => fullViewBoxes[floor]
 
 export const aspect = ([, , width, height]: ViewBox) => `${width} / ${height}`
 
@@ -184,17 +163,15 @@ function Entrance({ x, y }: { x: number, y: number }) {
   )
 }
 
-// Labels go in the visible part of the street, so zoomed-in views show them too.
-function Street({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
+function Street({ floor }: { floor: string }) {
   const [fx, fy, fw, fh] = fullViewBoxes[floor]
-  const [x, , width] = viewBox
   const top = fy + fh - STREET_BAND + STREET_Y
   const middle = top + STREET_HEIGHT / 2
-  const subteX = x + width - 70
+  const subteX = fx + fw - 70
   return (
     <g pointerEvents="none" fontFamily={FONT} fontWeight={600} dominantBaseline="central">
       <rect x={fx} y={top} width={fw} height={STREET_HEIGHT} fill={COLORS.street} />
-      <text x={x + width / 2} y={middle} fill={COLORS.streetLabel} fontSize={32} textAnchor="middle" letterSpacing={2}>Av. Figueroa Alcorta</text>
+      <text x={fx + fw / 2} y={middle} fill={COLORS.streetLabel} fontSize={32} textAnchor="middle" letterSpacing={2}>Av. Figueroa Alcorta</text>
       <circle cx={subteX} cy={middle} r={26} fill={COLORS.subte} />
       <text x={subteX} y={middle} fill={COLORS.wall} fontSize={34} fontWeight={700} textAnchor="middle">H</text>
       <text x={subteX - 40} y={middle} fill={COLORS.streetLabel} fontSize={28} textAnchor="end">Subte</text>
@@ -203,12 +180,10 @@ function Street({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
 }
 
 // The Floralis Genérica, a six-petal steel flower in the plaza off the left
-// side of the building, written up the left edge halfway down the visible part
-// of the building.
-function Floralis({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
+// side of the building, written up the left edge halfway down the building.
+function Floralis({ floor }: { floor: string }) {
   const [px, py, , ph] = plans[floor].viewBox
-  const [, vy, , vh] = viewBox
-  const middle = (Math.max(py, vy) + Math.min(py + ph, vy + vh)) / 2
+  const middle = py + ph / 2
   return (
     <g transform={`translate(${px - SIDE_BAND / 2} ${middle}) rotate(-90)`} pointerEvents="none">
       <g transform="translate(-118 0) rotate(90)" fill={COLORS.floralis}>
@@ -220,62 +195,25 @@ function Floralis({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
   )
 }
 
-// Thumbnail of the whole floor, with the zoomed-in area outlined, placed in the
-// corner of the zoomed view farthest from the selected room, but never over the
-// street.
-function Overview({ floor, selected, zoom }: { floor: string, selected: string, zoom: ViewBox }) {
-  const plan = plans[floor]
-  const [px, py, pw, ph] = fullViewBoxes[floor]
-  const [zx, zy, zw, zh] = zoom
-  const room = floors[floor].find(({ name }) => name === selected)!
-  const width = zw * 0.3
-  const height = (width * ph) / pw
-  const margin = zw * 0.02
-  const x = room.left + room.width / 2 < zx + zw / 2 ? zx + zw - width - margin : zx + margin
-  const showsStreet = zy + zh > py + ph - STREET_BAND
-  const y = room.top + room.height / 2 < zy + zh / 2 && !showsStreet ? zy + zh - height - margin : zy + margin
-  // stroke widths in the thumbnail's own (full plan) units
-  const unit = pw / width
-  return (
-    <g pointerEvents="none">
-      <rect x={x} y={y} width={width} height={height} rx={8} fill="white" stroke={COLORS.wall} strokeWidth={2} opacity={0.95} />
-      <svg x={x} y={y} width={width} height={height} viewBox={fullViewBoxes[floor].join(' ')}>
-        {floors[floor].map((r) => (
-          <rect key={r.name} x={r.left} y={r.top} width={r.width} height={r.height} fill={r.name === selected ? COLORS.selected : COLORS.room} />
-        ))}
-        <path d={plan.walls} fill={COLORS.wall} />
-        <rect x={px} y={py + ph - STREET_BAND + STREET_Y} width={pw} height={STREET_HEIGHT} fill={COLORS.street} />
-        <rect x={zx} y={zy} width={zw} height={zh} fill="none" stroke={COLORS.selected} strokeWidth={3 * unit} />
-      </svg>
-      <rect x={x} y={y} width={width} height={height} rx={8} fill="none" stroke={COLORS.wall} strokeWidth={2} />
-    </g>
-  )
-}
-
 interface FloorPlanProps {
   floor: string;
   selected?: string;
-  // zoom in on the selected room, with an overview of the floor in a corner
-  zoom?: boolean;
   onSelect?: (room: string) => void;
   ref?: React.Ref<SVGSVGElement>;
 }
 
-export default function FloorPlan({ floor, selected, zoom, onSelect, ref }: FloorPlanProps) {
+export default function FloorPlan({ floor, selected, onSelect, ref }: FloorPlanProps) {
   const plan = plans[floor]
-  const viewBox = planViewBox(floor, zoom ? selected : undefined)
-  const zoomed = viewBox !== fullViewBoxes[floor]
+  const viewBox = planViewBox(floor)
   const [x, y, width, height] = viewBox
-  // keep the full plan's resolution when zoomed, so the rasterized image stays sharp
-  const scale = fullViewBoxes[floor][2] / width
   const rooms = floors[floor]
   return (
     <svg
       ref={ref}
       xmlns="http://www.w3.org/2000/svg"
       viewBox={viewBox.join(' ')}
-      width={width * scale}
-      height={height * scale}
+      width={width}
+      height={height}
       // an interactive plan is a group of room buttons, which role="img" would hide
       role={onSelect ? 'group' : 'img'}
       aria-label={`Plano de ${floor}`}
@@ -347,13 +285,12 @@ export default function FloorPlan({ floor, selected, zoom, onSelect, ref }: Floo
           </text>
         </g>
       ))}
-      <Street floor={floor} viewBox={viewBox} />
-      <Floralis floor={floor} viewBox={viewBox} />
+      <Street floor={floor} />
+      <Floralis floor={floor} />
       {rooms.map((room) => room.toilet
         ? <ToiletIcon key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.toiletIcon} />
         : <RoomLabel key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.label} />
       )}
-      {zoomed && selected && <Overview floor={floor} selected={selected} zoom={viewBox} />}
     </svg>
   )
 }

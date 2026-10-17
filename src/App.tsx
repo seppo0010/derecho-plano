@@ -65,9 +65,8 @@ function FloorCard({ aspectRatio, title, subtitle, action, children }: { aspectR
 function App() {
   const planRef = useRef<SVGSVGElement | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(roomFromHash);
-  const [zoomed, setZoomed] = useState(true);
   // what the plan is rendered for; the image is only shown once it matches
-  const imageKey = selectedRoom && JSON.stringify([selectedRoom.name, zoomed]);
+  const imageKey = selectedRoom && selectedRoom.name;
   const [rendered, setRendered] = useState<{ key: string, png: string } | null>(null);
   const roomImage = rendered && rendered.key === imageKey ? rendered.png : null;
   const selectRoom = (room: RoomOption | null) => {
@@ -99,8 +98,6 @@ function App() {
       cancelled = true;
     };
   }, [imageKey])
-  const selectedViewBox = selectedRoom && planViewBox(selectedRoom.floor, zoomed ? selectedRoom.name : undefined);
-  const canZoom = selectedRoom !== null && planViewBox(selectedRoom.floor, selectedRoom.name) !== planViewBox(selectedRoom.floor);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: 6 }}>
@@ -132,19 +129,14 @@ function App() {
             <Box>
               <Button onClick={() => selectRoom(null)} sx={{ mb: 1 }}>← Ver todos los pisos</Button>
               <FloorCard
-                aspectRatio={aspect(selectedViewBox!)}
+                aspectRatio={aspect(planViewBox(selectedRoom.floor))}
                 title={roomTitle(selectedRoom.name)}
                 subtitle={capitalize(selectedRoom.floor)}
-                action={
-                  <Stack direction="row" spacing={1}>
-                    {canZoom && <Button variant="outlined" onClick={() => setZoomed(!zoomed)}>{zoomed ? 'Ver piso completo' : 'Acercar'}</Button>}
-                    {roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
-                  </Stack>
-                }
+                action={roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
               >
                 {roomImage
                   ? <Box component="img" src={roomImage} alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`} sx={{ display: 'block', width: '100%' }} />
-                  : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} zoom={zoomed} />}
+                  : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} />}
               </FloorCard>
             </Box>
           )}
