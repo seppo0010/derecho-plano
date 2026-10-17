@@ -7,6 +7,9 @@ export interface Room {
   toilet?: { gender?: 'mujeres' | 'hombres' };
 }
 
+// Numbered rooms are aulas; the rest already have a full name.
+export const roomTitle = (name: string) => /^\d/.test(name) ? `Aula ${name}` : name
+
 export interface Entrance {
   // where the entrance icon goes, and the center of its "Entrada" label
   x: number;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { entrances, floors, Room } from './Data';
+import { entrances, floors, Room, roomTitle } from './Data';
 import { plans } from './Plans';
 
 export const COLORS = {
@@ -203,11 +203,14 @@ function Street({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
 }
 
 // The Floralis Genérica, a six-petal steel flower in the plaza off the left
-// side of the building, written up the left edge halfway down the building.
-function Floralis({ floor }: { floor: string }) {
+// side of the building, written up the left edge halfway down the visible part
+// of the building.
+function Floralis({ floor, viewBox }: { floor: string, viewBox: ViewBox }) {
   const [px, py, , ph] = plans[floor].viewBox
+  const [, vy, , vh] = viewBox
+  const middle = (Math.max(py, vy) + Math.min(py + ph, vy + vh)) / 2
   return (
-    <g transform={`translate(${px - SIDE_BAND / 2} ${py + ph / 2}) rotate(-90)`} pointerEvents="none">
+    <g transform={`translate(${px - SIDE_BAND / 2} ${middle}) rotate(-90)`} pointerEvents="none">
       <g transform="translate(-118 0) rotate(90)" fill={COLORS.floralis}>
         {[0, 60, 120, 180, 240, 300].map((angle) => <ellipse key={angle} cx={0} cy={-15} rx={8} ry={15} transform={`rotate(${angle})`} />)}
         <circle r={7} fill={COLORS.background} />
@@ -273,7 +276,8 @@ export default function FloorPlan({ floor, selected, zoom, onSelect, ref }: Floo
       viewBox={viewBox.join(' ')}
       width={width * scale}
       height={height * scale}
-      role="img"
+      // an interactive plan is a group of room buttons, which role="img" would hide
+      role={onSelect ? 'group' : 'img'}
       aria-label={`Plano de ${floor}`}
     >
       <rect x={x} y={y} width={width} height={height} fill={COLORS.background} />
@@ -282,9 +286,20 @@ export default function FloorPlan({ floor, selected, zoom, onSelect, ref }: Floo
         return (
           <g
             key={room.name}
-            className={onSelect ? 'room' : undefined}
-            onClick={onSelect && (() => onSelect(room.name))}
-            style={onSelect ? { cursor: 'pointer' } : undefined}
+            {...onSelect && {
+              className: 'room',
+              role: 'button',
+              tabIndex: 0,
+              'aria-label': roomTitle(room.name),
+              onClick: () => onSelect(room.name),
+              onKeyDown: (event: React.KeyboardEvent) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onSelect(room.name)
+                }
+              },
+              style: { cursor: 'pointer' },
+            }}
           >
             <title>{room.name}</title>
             {isSelected && (
@@ -333,7 +348,7 @@ export default function FloorPlan({ floor, selected, zoom, onSelect, ref }: Floo
         </g>
       ))}
       <Street floor={floor} viewBox={viewBox} />
-      <Floralis floor={floor} />
+      <Floralis floor={floor} viewBox={viewBox} />
       {rooms.map((room) => room.toilet
         ? <ToiletIcon key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.toiletIcon} />
         : <RoomLabel key={room.name} room={room} color={room.name === selected ? 'white' : COLORS.label} />

@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { floors } from './Data';
+import { floors, roomTitle } from './Data';
 import FloorPlan, { COLORS, aspect, planViewBox } from './FloorPlan';
 
 interface RoomOption {
@@ -55,7 +55,7 @@ function FloorCard({ aspectRatio, title, subtitle, action, children }: { aspectR
         </Box>
         {action}
       </Stack>
-      <Box sx={{ bgcolor: COLORS.background, aspectRatio, '& svg': { display: 'block', width: '100%', height: 'auto' }, '& .room:hover rect': { fill: COLORS.roomHover } }}>
+      <Box sx={{ bgcolor: COLORS.background, aspectRatio, '& svg': { display: 'block', width: '100%', height: 'auto' }, '& .room:hover rect': { fill: COLORS.roomHover }, '& .room:focus': { outline: 'none' }, '& .room:focus-visible rect': { fill: COLORS.roomHover, stroke: COLORS.selected, strokeWidth: 8 } }}>
         {children}
       </Box>
     </Paper>
@@ -129,21 +129,24 @@ function App() {
               <FloorPlan floor={floor} onSelect={(name) => selectRoom({ name, floor })} />
             </FloorCard>
           )) : (
-            <FloorCard
-              aspectRatio={aspect(selectedViewBox!)}
-              title={/^\d/.test(selectedRoom.name) ? `Aula ${selectedRoom.name}` : selectedRoom.name}
-              subtitle={capitalize(selectedRoom.floor)}
-              action={
-                <Stack direction="row" spacing={1}>
-                  {canZoom && <Button variant="outlined" onClick={() => setZoomed(!zoomed)}>{zoomed ? 'Ver piso completo' : 'Acercar'}</Button>}
-                  {roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
-                </Stack>
-              }
-            >
-              {roomImage
-                ? <Box component="img" src={roomImage} alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`} sx={{ display: 'block', width: '100%' }} />
-                : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} zoom={zoomed} />}
-            </FloorCard>
+            <Box>
+              <Button onClick={() => selectRoom(null)} sx={{ mb: 1 }}>← Ver todos los pisos</Button>
+              <FloorCard
+                aspectRatio={aspect(selectedViewBox!)}
+                title={roomTitle(selectedRoom.name)}
+                subtitle={capitalize(selectedRoom.floor)}
+                action={
+                  <Stack direction="row" spacing={1}>
+                    {canZoom && <Button variant="outlined" onClick={() => setZoomed(!zoomed)}>{zoomed ? 'Ver piso completo' : 'Acercar'}</Button>}
+                    {roomImage && <Button variant="contained" href={roomImage} download={`${selectedRoom.name}.png`}>Descargar</Button>}
+                  </Stack>
+                }
+              >
+                {roomImage
+                  ? <Box component="img" src={roomImage} alt={`Ubicación de ${selectedRoom.name} en ${selectedRoom.floor}`} sx={{ display: 'block', width: '100%' }} />
+                  : <FloorPlan ref={planRef} floor={selectedRoom.floor} selected={selectedRoom.name} zoom={zoomed} />}
+              </FloorCard>
+            </Box>
           )}
         </Stack>
       </Container>
