@@ -21,7 +21,7 @@ function App() {
     if (selectedRoom === null) {
       return;
     }
-    const s = selectedRoom;
+    let cancelled = false;
     const WIDTH = 2993
     const HEIGHT = 2117
     if (!canvasRef) return;
@@ -41,6 +41,7 @@ function App() {
         image.crossOrigin = 'Anonymous';
         image.src = `${process.env.PUBLIC_URL}/images/${encodeURIComponent(name)}.png`;
         image.onload = () => {
+          if (cancelled) return;
           ctx.fillStyle = "white";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(image, 0, 0, image.width, image.height)
@@ -57,11 +58,12 @@ function App() {
           })
 
           ctx.stroke();
-          if (s === selectedRoom) {
-            setRoomImage(canvas.toDataURL())
-          }
+          setRoomImage(canvas.toDataURL())
         }
       })
+    return () => {
+      cancelled = true;
+    };
   }, [selectedRoom])
 
   return (
