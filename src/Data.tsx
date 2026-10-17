@@ -7,6 +7,20 @@ export interface Room {
   toilet?: { gender?: 'mujeres' | 'hombres' };
 }
 
+export interface Entrance {
+  // where the entrance icon goes, and the center of its "Entrada" label
+  x: number;
+  y: number;
+  label: { x: number, y: number, vertical?: boolean };
+}
+
+// Public entrances: the side door on planta baja and the front steps up from
+// Av. Figueroa Alcorta to planta principal.
+export const entrances: Record<string, Entrance[]> = {
+  "planta baja": [{x: 2150, y: 1050, label: {x: 2232, y: 1050, vertical: true}}],
+  "planta principal": [{x: 1141, y: 1738, label: {x: 1240, y: 1738}}],
+}
+
 export const floors: Record<string, Room[]> = {
   "planta baja": [
     {name:"7", left: 284, top: 862, width: 105, height: 73},
