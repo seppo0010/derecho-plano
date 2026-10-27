@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { floors, roomTitle } from './Data';
+import { floors, roomSlug, roomTitle } from './Data';
 import FloorPlan, { COLORS, aspect, planViewBox } from './FloorPlan';
 
 interface RoomOption {
@@ -17,6 +17,10 @@ interface RoomOption {
 
 const allRooms: RoomOption[] = Object.entries(floors).flatMap(([floor, rooms]) => rooms.map(({ name }) => ({ name, floor })))
 
+const SITE_TITLE = 'Plano de Derecho UBA'
+const roomPath = (room: RoomOption | null) => import.meta.env.BASE_URL + (room ? `aula/${roomSlug(room.name)}/` : '')
+
+// Links used to select the room with the hash (#42); those are moved to the room's page.
 const roomFromHash = () => {
   let name: string
   try {
@@ -25,6 +29,16 @@ const roomFromHash = () => {
     return null
   }
   return allRooms.find((room) => room.name === name) ?? null
+}
+
+const roomFromLocation = () => {
+  const hashRoom = roomFromHash()
+  if (hashRoom) {
+    window.history.replaceState(null, '', roomPath(hashRoom))
+    return hashRoom
+  }
+  const match = window.location.pathname.match(/\/aula\/([^/]+)\/?$/)
+  return match ? allRooms.find((room) => roomSlug(room.name) === match[1]) ?? null : null
 }
 
 // Rasterize the plan so it can be shown as an <img>, which users can copy or save.
@@ -73,7 +87,7 @@ function FloorCard({ aspectRatio, title, subtitle, action, children }: { aspectR
 
 function App() {
   const planRef = useRef<SVGSVGElement | null>(null);
-  const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(roomFromHash);
+  const [selectedRoom, setSelectedRoom] = useState<RoomOption | null>(roomFromLocation);
   // what the plan is rendered for; the image is only shown once it matches
   const imageKey = selectedRoom && selectedRoom.name;
   const [rendered, setRendered] = useState<{ key: string, png: string } | null>(null);
@@ -81,21 +95,20 @@ function App() {
   const [hoveringRoom, setHoveringRoom] = useState(false);
   const selectRoom = (room: RoomOption | null) => {
     setSelectedRoom(room);
-    if (room) {
-      window.location.hash = encodeURIComponent(room.name);
-    } else {
-      window.history.pushState(null, '', window.location.pathname + window.location.search);
-    }
+    window.history.pushState(null, '', roomPath(room));
   }
   useEffect(() => {
-    const onHashChange = () => setSelectedRoom(roomFromHash());
-    window.addEventListener('hashchange', onHashChange);
-    window.addEventListener('popstate', onHashChange);
+    const onLocationChange = () => setSelectedRoom(roomFromLocation());
+    window.addEventListener('hashchange', onLocationChange);
+    window.addEventListener('popstate', onLocationChange);
     return () => {
-      window.removeEventListener('hashchange', onHashChange);
-      window.removeEventListener('popstate', onHashChange);
+      window.removeEventListener('hashchange', onLocationChange);
+      window.removeEventListener('popstate', onLocationChange);
     };
   }, [])
+  useEffect(() => {
+    document.title = selectedRoom ? `${roomTitle(selectedRoom.name)} — ${SITE_TITLE}` : SITE_TITLE;
+  }, [selectedRoom])
   useEffect(() => {
     if (imageKey === null) return;
     const svg = planRef.current;

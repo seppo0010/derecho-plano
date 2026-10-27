@@ -10,6 +10,14 @@ export interface Room {
 // Numbered rooms are aulas; the rest already have a full name.
 export const roomTitle = (name: string) => /^\d/.test(name) ? `Aula ${name}` : name
 
+// The room's page lives at aula/<slug>/, e.g. "Baño de mujeres junto al 42" → bano-de-mujeres-junto-al-42.
+export const roomSlug = (name: string) => name
+  .normalize('NFD')
+  .replace(/[̀-ͯ]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-|-$/g, '')
+
 export interface Entrance {
   // where the entrance icon goes, and the center of its "Entrada" label
   x: number;
